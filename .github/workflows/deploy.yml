@@ -13,6 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract site bundle
+        run: |
+          ls -la
+          ARCHIVE=$(ls *.zip 2>/dev/null | head -n 1)
+          if [ -z "$ARCHIVE" ]; then
+            echo "No zip bundle found"; exit 1
+          fi
+          mkdir -p static-site
+          unzip -o -q "$ARCHIVE" -d static-site
+          echo "Extracted from $ARCHIVE"
+
       - name: Decode base64 assets
         run: |
           find static-site -name "*.b64" | while read -r f; do
@@ -21,6 +32,8 @@ jobs:
             base64 -d "$f" > "$out"
             rm -f "$f"
           done
+          echo "Decoded. Files in static-site:"
+          find static-site -type f | head -n 50
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
